@@ -1,0 +1,25 @@
+{
+  "id": "redis-worker-controller",
+  "kind": "ReplicationController",
+  "apiVersion": "v1beta1",
+  "desiredState": {
+    "replicas": 2,
+    "replicaSelector": {"name": "redis", "role": "worker"},
+    "podTemplate": {
+      "desiredState": {
+        "manifest": {
+          "version": "v1beta1",
+          "id": "redis-worker-controller",
+          "containers": [{
+            "name": "redis-worker",
+            "image": "brendanburns/redis-slave",
+            "cpu": 200,
+            "ports": [{"name": "redis-server", "containerPort": 6379}]
+          }]
+        }
+      },
+      "labels": { "name": "redis", "role": "worker" }
+    }
+  },
+  "labels": { "name": "redis", "role": "worker" }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "redis-master-controller",
+  "kind": "ReplicationController",
+  "apiVersion": "v1beta1",
+  "desiredState": {
+    "replicas": 1,
+    "replicaSelector": {"name": "redis", "role": "master"},
+    "podTemplate": {
+      "desiredState": {
+        "manifest": {
+          "version": "v1beta1",
+          "id": "redis-master-controller",
+          "containers": [{
+            "name": "master",
+            "image": "knodir/persistentredisserver",
+            "cpu": 100,
+            "ports": [{"name": "redis-server", "containerPort": 6379}]
+          }]
+        }
+      },
+      "labels": { "name": "redis", "role": "master" }
+    }
+  },
+  "labels": { "name": "redis", "role": "master" }
+}

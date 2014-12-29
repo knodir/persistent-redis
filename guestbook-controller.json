@@ -1,0 +1,26 @@
+{
+  "id": "guestbook-controller",
+  "kind": "ReplicationController",
+  "apiVersion": "v1beta1",
+  "desiredState": {
+    "replicas": 3,
+    "replicaSelector": {"name": "guestbook"},
+    "podTemplate": {
+      "desiredState": {
+        "manifest": {
+          "version": "v1beta1",
+          "id": "guestbook-controller",
+          "containers": [{
+            "name": "php-redis",
+            "image": "brendanburns/php-redis",
+            "cpu": 100,
+            "memory": 50000000,
+            "ports": [{"name": "http-server", "containerPort": 80}]
+          }]
+        }
+      },
+      "labels": { "name": "guestbook" }
+    }
+  },
+  "labels": {"name": "guestbook"}
+}
