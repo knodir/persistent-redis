@@ -132,9 +132,7 @@ func main() {
 			// open file for writing
 			file, err := os.Create(fileName)
 			if (err != nil) {
-				// fmt.Printf("ERROR: could not open file for write, error: %s", err)
-				// return
-				log.Fatalf("[GS-BACKUP][FATAL]: could not open file for write, error: %s", err)
+				log.Printf("[GS-BACKUP][FATAL]: could not open file for write, error: %s", err)
 			}
 
 			// Use io.Copy to copy a file from URL to a locald disk
@@ -142,7 +140,7 @@ func main() {
 			if (err != nil) {
 				// fmt.Printf("ERROR: could not open file for write, error: %s", err)
 				// return
-				log.Fatalf("[GS-BACKUP][FATAL]: could not open file for write, error: %s", err)
+				log.Printf("[GS-BACKUP][FATAL]: could not open file for write, error: %s", err)
 			}
 			file.Close()
 			// fmt.Println("File successfully saved!")

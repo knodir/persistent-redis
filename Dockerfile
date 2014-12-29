@@ -49,11 +49,13 @@ RUN \
   go get code.google.com/p/goauth2/oauth && \
   go get code.google.com/p/google-api-go-client/storage/v1 && \
   wget https://raw.githubusercontent.com/knodir/persistent-redis/master/gsbckp.go && \
-  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/cache.json
+  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/cache.json && \
+  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/startScript.sh 
 
 # Define default command.
-CMD ["go", "run gsbckp.go &"]
-CMD ["redis-server", "/etc/redis/redis.conf"]
+# CMD ["go", "run gsbckp.go &"]
+# CMD ["redis-server", "/etc/redis/redis.conf"]
+CMD ["/bin/bash", "/data/startScript.sh"]
 
 # Expose ports.
 EXPOSE 6379
