@@ -53,7 +53,7 @@ var (
 	code      = flag.String("code", "", "Authorization Code")
 
 	bucketName   = "redis_master_bckp"
-	fileName   = "test.txt" // The name of the local file to upload, e.g., /path/to/file.txt
+	fileName   = "/data/dump.rdb" // The name of the local file to upload, e.g., /path/to/file.txt
 	objectName = "master-data"    // This can be changed to any valid object name. e.g., master-data
 
 	// For additional help with OAuth2 setup,
@@ -130,7 +130,7 @@ func main() {
 			defer response.Body.Close()
 
 			// open file for writing
-			file, err := os.Create("text.read")
+			file, err := os.Create(fileName)
 			if (err != nil) {
 				// fmt.Printf("ERROR: could not open file for write, error: %s", err)
 				// return
@@ -175,7 +175,7 @@ func main() {
 		object := &storage.Object{Name: objectName}
 		file, err := os.Open(fileName)
 		if err != nil {
-			log.Fatalf("[GS-BACKUP][FATAL]: Error opening backup file %q: %v", fileName, err)
+			log.Printf("[GS-BACKUP][INFO]: Backup file does not exist now, going on ... %q: %v", fileName, err)
 		}
 		if res, err := service.Objects.Insert(bucketName, object).Media(file).Do(); err == nil {
 			log.Printf("[GS-BACKUP][INFO]: Successfully backed up redis database as an object %v at location %v\n\n", res.Name, res.SelfLink)

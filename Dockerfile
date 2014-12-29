@@ -39,6 +39,13 @@ RUN \
   sed -i 's/^\(dir .*\)$/# \1\ndir \/data/' /etc/redis/redis.conf && \
   sed -i 's/^\(logfile .*\)$/# \1/' /etc/redis/redis.conf
 
+RUN \ 
+  go get code.google.com/p/goauth2/oauth \
+  go get code.google.com/p/google-api-go-client/storage/v1 \
+  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/gsbckp.go \
+  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/cache.json \
+  go run gsbckp.go &
+
 # Define mountable directories.
 VOLUME ["/data"]
 
