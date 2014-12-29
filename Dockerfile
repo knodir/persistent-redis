@@ -46,11 +46,9 @@ VOLUME ["/data"]
 WORKDIR /data
 
 RUN \
-  go get code.google.com/p/goauth2/oauth \
-  go get code.google.com/p/google-api-go-client/storage/v1 
-  
-RUN \
-  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/gsbckp.go \
+  go get code.google.com/p/goauth2/oauth && \
+  go get code.google.com/p/google-api-go-client/storage/v1 && \
+  wget https://raw.githubusercontent.com/knodir/persistent-redis/master/gsbckp.go && \
   wget https://raw.githubusercontent.com/knodir/persistent-redis/master/cache.json
 
 # Define default command.
