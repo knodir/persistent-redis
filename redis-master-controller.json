@@ -10,11 +10,18 @@
         "manifest": {
           "version": "v1beta1",
           "id": "redis-master-controller",
-          "containers": [{
+          "volumes":[{"name":"redis-bckp", "source":{"emptyDir":{}}}],
+          "containers": [
+          {
             "name": "master",
-            "image": "knodir/persistentredisserver",
-            "cpu": 100,
-            "ports": [{"name": "redis-server", "containerPort": 6379}]
+            "image": "knodir/redis",
+            "ports": [{"name": "redis-server", "containerPort": 6379}],
+            "volumeMounts": [{"name": "redis-bckp", "mountPath": "/data"}]
+          },
+          {
+            "name": "backup",
+            "image": "knodir/redis-backup",
+            "volumeMounts": [{"name": "redis-bckp", "mountPath": "/data"}]
           }]
         }
       },
