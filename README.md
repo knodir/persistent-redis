@@ -15,3 +15,28 @@ Redis master replication controller solves availability problem, but not the dat
 
 ## Approach
 
+There are at least three different solutions to this problem. 
+- use Docker's data volume containers (a.k.a. data-only containers). Tom Offermann has a great [post](http://www.offermann.us/2013/12/tiny-docker-pieces-loosely-joined.html) how to do this (solves different problem)
+- mount [Google persistent disks](https://cloud.google.com/compute/docs/disks) to container and store Redis DB file on that disk
+- run another container to constantly save snapshot of the DB file in reliable storage
+Since I was planning to hack Kubernetes broader, I decided to go with the last option. Thus, I could play not only with Docker volumes, but also Dockerfiles, pods, write Go applicaiton to backup DB file, and dockerize that application. I ended up doing followings:
+- create a replication controller for the redis master pod
+- include an additional container to the redis master pod which run an applicaion to constantly back-up Redis DB file 
+- write Go application to frequently send the copy of the Redis DB file to Google (object) [Storage](https://cloud.google.com/storage/)
+- create a new Docker image to run backup application.
+
+## How to use
+
+Large part of effort to reproduce this project would be spend to prepare the environment. I will just refer to the external sources which has a detailed explanation of the preparation steps. Follow these steps in order.
+
+### Get initial Guestbook runnning
+
+Follow the steps in original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference I included several files from the Guestbook in this repository, which are guestbook-controller.json, guestbook-service.json, redis-master-service.json, redis-worker-controller.json, and
+redis-worker-service.json. Basically everything except redis-master-pod.json. 
+
+
+## Under the hood
+
+
+## Feedback
+
