@@ -22,7 +22,7 @@ There are at least three different solutions to this problem, which are listed b
 
 Since I was planning to hack Kubernetes broader, I decided to go with the last option. Thus, I could play not only with Docker volumes, but also Dockerfiles, pods, write Go applicaiton to backup DB file, and dockerize that application. I ended up doing followings:
 - create a replication controller for the redis master pod
-- include an additional container to the redis master pod which run an applicaion to constantly back-up Redis DB file 
+- include an additional container to the redis master pod which runs applicaion to constantly back-up Redis DB file 
 - write Go application to frequently send the copy of the Redis DB file to Google (object) [Storage](https://cloud.google.com/storage/)
 - create a new Docker image to run backup application.
 
@@ -38,20 +38,27 @@ Follow steps in the original [Guestbook](https://cloud.google.com/container-engi
 ### Run redis master with replication controller
 
 Delete redis master pod from running Guestbook application via 
+
 	gcloud preview container pods delete <master-pod-uuid> 
+
 Run master controller via replication controller using
-	gcloud preview container replicationcontrollers create \
-    --config-file $CONFIG_DIR/redis-master-controller.json
+
+	gcloud preview container replicationcontrollers create \ --config-file $CONFIG_DIR/redis-master-controller.json
+
 intead of following command in original Guestbook
 	gcloud preview container pods create \
     --config-file $CONFIG_DIR/redis-master-pod.json
 
 When you do 
+
 	gcloud preview container replicationcontrollers list 
+
 you should see redis-master-controller running two images, knodir/redis and knodir/redis-backup with replicas equal to one. 
 
 Similarly,
+
 	gcloud preview container pods list 
+
 command should show two containers, with aforementioned images, running under the same pod name.
 
 Now to check if everything is working as expected, you can make some guest entries (on browser), delete a pod running redis master (or one of those containers by logging into host VM), and see replication controller create another pod with all previously entered guest posts. Congrats, if it did so! Otherwise, keep reading; I'll explain what is going on under the hood, which should be helpful for debugging. 
