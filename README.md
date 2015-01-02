@@ -30,12 +30,37 @@ Since I was planning to hack Kubernetes broader, I decided to go with the last o
 
 Large part of effort to reproduce this project would be spend to prepare the environment. I will just refer to the external sources which has a detailed explanation of the preparation steps. Follow these steps in order.
 
-### Get initial Guestbook runnning
+### Get initial Guestbook running
 
-Follow steps in the original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference, I included several files (see [for-reference](./for-refernce) folder) from the Guestbook in this repository. Basically, the only file missing is redis-master-pod.json since we need to run redis-master with replication controller (not a single pod).
+Follow steps in the original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference, I included several files (see [for-reference](./for-reference) folder) from the Guestbook in this repository. Basically, the only file missing is redis-master-pod.json since we need to run redis-master with replication controller (not a single pod).
+
+
+### Run redis master with replication controller
+
+Delete redis master pod from running Guestbook application via 
+	gcloud preview container pods delete <master-pod-uuid> 
+Run master controller via replication controller using
+	gcloud preview container replicationcontrollers create \
+    --config-file $CONFIG_DIR/redis-master-controller.json
+intead of following command in original Guestbook
+	gcloud preview container pods create \
+    --config-file $CONFIG_DIR/redis-master-pod.json
+
+When you do 
+	gcloud preview container replicationcontrollers list 
+you should see redis-master-controller running two images, knodir/redis and knodir/redis-backup with replicas equal to one. 
+
+Similarly,
+	gcloud preview container pods list 
+command should show two containers, with aforementioned images, running under the same pod name.
+
+Now to check if everything is working as expected, you can make some guest entries (on browser), delete a pod running redis master (or one of those containers by logging into host VM), and see replication controller create another pod with all previously entered guest posts. Congrats, if it did so! Otherwise, keep reading; I'll explain what is going on under the hood, which should be helpful for debugging. 
+
 
 ## Under the hood
 
 
+
 ## Feedback
 
+This is a tiny project, mostly to educate myself about Kubernetes, so I don't expect much feedback. But if you get stuck reproducing this, solved the same problem with different approach, or anything relevant, feel free to open Github issue, or email me.
