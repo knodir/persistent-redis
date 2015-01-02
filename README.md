@@ -34,7 +34,6 @@ Large part of effort to reproduce this project would be spend to prepare the env
 
 Follow steps in the original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference, I included several files (see [for-reference](./for-reference) folder) from the Guestbook in this repository. Basically, the only file missing is redis-master-pod.json since we need to run redis-master with replication controller (not a single pod).
 
-
 ### Run redis master with replication controller
 
 Delete redis master pod from running Guestbook application via 
@@ -43,11 +42,13 @@ Delete redis master pod from running Guestbook application via
 
 Run master controller via replication controller using
 
-	gcloud preview container replicationcontrollers create \ --config-file $CONFIG_DIR/redis-master-controller.json
+	gcloud preview container replicationcontrollers create \ 
+	--config-file $CONFIG_DIR/redis-master-controller.json
 
-intead of following command in original Guestbook
-	gcloud preview container pods create \
-    --config-file $CONFIG_DIR/redis-master-pod.json
+intead of the following command in the original Guestbook
+
+	gcloud preview container pods create \ 
+	--config-file $CONFIG_DIR/redis-master-pod.json
 
 When you do 
 
@@ -59,13 +60,18 @@ Similarly,
 
 	gcloud preview container pods list 
 
-command should show two containers, with aforementioned images, running under the same pod name.
+should show two containers, with aforementioned images, running under the same pod.
 
 Now to check if everything is working as expected, you can make some guest entries (on browser), delete a pod running redis master (or one of those containers by logging into host VM), and see replication controller create another pod with all previously entered guest posts. Congrats, if it did so! Otherwise, keep reading; I'll explain what is going on under the hood, which should be helpful for debugging. 
 
 
 ## Under the hood
 
+As explained above, replication controller creates a redis master pod, which runs two containers, one to store Redis database (the same as original Guestbook) and the other to constantly backup Redis DB file to Google storage. You might have noticed I use knodir/redis image instead of dockerfile/redis. The only change I did to original [dockerfile/redis](https://github.com/dockerfile/redis) image is to update Redis database configuration to take the snapshot of the DB file after each insert record. You can see that in line #22 of the modified Dockerfile in [redis](./redis) folder (compared to the original dockerfile/redis [Dockerfile](https://github.com/dockerfile/redis/blob/master/Dockerfile)).
+
+	sed -i 's/save 900 1/save 3 1/' /etc/redis/redis.conf && \ 
+
+This change lets us to see the result of our project right away, instead of waiting 15 minutes for Redis to write entries to DB file (default Redis behavior). Of course this is is too much overhead and never should be done in any useful deployment (except this educational one). This project works fine with original dockerfile/redis, too.
 
 
 ## Feedback
