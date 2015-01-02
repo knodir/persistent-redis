@@ -1,7 +1,7 @@
 Persistent Redis master for the Guestbook 
 ================
 
-TL;DR -- Make Kubernetes Guestbook's Redis database persistent by using Google Storage.
+TL; DR -- Make Kubernetes Guestbook's Redis database persistent by using Google Storage.
 
 ## Introduction
 
@@ -15,10 +15,11 @@ Redis master replication controller solves availability problem, but not the dat
 
 ## Approach
 
-There are at least three different solutions to this problem. 
+There are at least three different solutions to this problem, which are listed below: 
 - use Docker's data volume containers (a.k.a. data-only containers). Tom Offermann has a great [post](http://www.offermann.us/2013/12/tiny-docker-pieces-loosely-joined.html) how to do this (solves different problem)
 - mount [Google persistent disks](https://cloud.google.com/compute/docs/disks) to container and store Redis DB file on that disk
-- run another container to constantly save snapshot of the DB file in reliable storage
+- run another container to constantly save snapshot of the DB file in reliable storage.
+
 Since I was planning to hack Kubernetes broader, I decided to go with the last option. Thus, I could play not only with Docker volumes, but also Dockerfiles, pods, write Go applicaiton to backup DB file, and dockerize that application. I ended up doing followings:
 - create a replication controller for the redis master pod
 - include an additional container to the redis master pod which run an applicaion to constantly back-up Redis DB file 
@@ -31,9 +32,7 @@ Large part of effort to reproduce this project would be spend to prepare the env
 
 ### Get initial Guestbook runnning
 
-Follow the steps in original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference I included several files from the Guestbook in this repository, which are guestbook-controller.json, guestbook-service.json, redis-master-service.json, redis-worker-controller.json, and
-redis-worker-service.json. Basically everything except redis-master-pod.json. 
-
+Follow steps in the original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference, I included several files (see [for-reference](./for-refernce) folder) from the Guestbook in this repository. Basically, the only file missing is redis-master-pod.json since we need to run redis-master with replication controller (not a single pod).
 
 ## Under the hood
 
