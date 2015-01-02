@@ -32,7 +32,7 @@ Large part of effort to reproduce this project would be spend to prepare the env
 
 ### Get initial Guestbook running
 
-Follow steps in the original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference, I included several files (see [for-reference](./for-reference) folder) from the Guestbook in this repository. Basically, the only file missing is redis-master-pod.json since we need to run redis-master with replication controller (not a single pod).
+Follow steps in the original [Guestbook](https://cloud.google.com/container-engine/docs/guestbook) and make sure everything works as it should. For your reference, I included several files (see [for-reference](./for-reference) folder) from the Guestbook in this repository. Basically, the only file missing is `redis-master-pod.json` since we need to run redis-master with replication controller (not a single pod).
 
 ### Run redis master with replication controller
 
@@ -67,11 +67,15 @@ Now to check if everything is working as expected, you can make some guest entri
 
 ## Under the hood
 
-As explained above, replication controller creates a redis master pod, which runs two containers, one to store Redis database (the same as original Guestbook) and the other to constantly backup Redis DB file to Google storage. You might have noticed I use knodir/redis image instead of dockerfile/redis. The only change I did to original [dockerfile/redis](https://github.com/dockerfile/redis) image is to update Redis database configuration to take the snapshot of the DB file after each insert record. You can see that in line #22 of the modified Dockerfile in [redis](./redis) folder (compared to the original dockerfile/redis [Dockerfile](https://github.com/dockerfile/redis/blob/master/Dockerfile)).
+As explained above, replication controller creates a redis master pod, which runs two containers, one to store Redis database (the same as original Guestbook) and the other to constantly backup Redis DB file to Google storage. You might have noticed I use knodir/redis image instead of `dockerfile/redis`. The only change I did to the original [dockerfile/redis](https://github.com/dockerfile/redis) image is to update Redis database configuration to take the snapshot of the DB file after each insert record. You can see that in line #22 of the modified [Dockerfile](https://github.com/knodir/persistent-redis/blob/master/redis/Dockerfile) in [redis](./redis) folder (compared to the original `dockerfile/redis` [Dockerfile](https://github.com/dockerfile/redis/blob/master/Dockerfile)).
 
 	sed -i 's/save 900 1/save 3 1/' /etc/redis/redis.conf && \ 
 
-This change lets us to see the result of our project right away, instead of waiting 15 minutes for Redis to write entries to DB file (default Redis behavior). Of course this is is too much overhead and never should be done in any useful deployment (except this educational one). This project works fine with original dockerfile/redis, too.
+This change lets us to see the result of our project right away, instead of waiting 15 minutes for Redis to write entries to DB file (default Redis behavior). Of course this is is too much overhead and never should be done in any useful deployment (except this educational one :). This project works fine with original `dockerfile/redis`, too.
+
+`redis-master-controller.json` file defines shared folder `redis-bckp` which will be mounted in `/data` folder of the both containers. This is the same folder where Redis saved its snapshot file `dump.rdb` in the original `dockerfile/redis` image. I just made this folder [pod's volume](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/volumes.md), which will be accessible to all containers running in the same pod. The application running in another container, `knodir/redis-backup`, writes `dump.rdb` file to Google storage every 5 seconds (hardcoded, but possible to change by updating Docker image). Application also reads data from Google storage and replaces local `dump.rdb` at container boot time (only). This is the core idea of the Google storage based Redis data resilience approach.
+
+The second container's image is `knodir/redis-backup` created using [google/golang](https://registry.hub.docker.com/u/google/golang/) image, which bundles container with the latest version of Golang. [Dockerfile](https://github.com/knodir/persistent-redis/blob/master/redis-backup/Dockerfile) in [redis-backup](https://github.com/knodir/persistent-redis/tree/master/redis-backup) folder shows how to make this image run our redis-backup application, `app.go`. Also, note that `app.go` uses my credentials to access Google storage services. That credentials are of my trial account, which will expire within a week (by Jan. 6, 2015). Although credentials are hardcoded, it is possible to update them with yours by replacing `cache.json` file via sign-up to [Google Storage](https://cloud.google.com/storage/).
 
 
 ## Feedback
